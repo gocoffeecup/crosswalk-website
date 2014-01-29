@@ -57,7 +57,11 @@ if ($now['sec'] - $mtime < 10)
     exit;
 
 $ret = 0;
-@system ('git --git-dir=wiki.git fetch -q origin master:master', $ret);
+
+$pwd = dirname(__FILE__);
+$cmd = "git --git-dir=$pwd/wiki.git fetch -q origin master:master";
+
+system ($cmd, $ret);
 if ($ret) {
     print "git fetch failed";
     exit;
