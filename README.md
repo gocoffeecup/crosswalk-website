@@ -165,6 +165,11 @@ installation and adding this line (there should be several other
 
     extension=php_curl.so
 
+You will also need git and wget installed on the server, and accessible to the
+Apache user, e.g. on Fedora:
+
+    sudo yum install git wget
+
 ## Server configuration
 
 To host the Crosswalk website, the following needs to be done on the server:
@@ -176,15 +181,15 @@ To host the Crosswalk website, the following needs to be done on the server:
     # make a clone of the wiki content
     git clone --bare https://github.com/crosswalk-project/crosswalk-website.wiki.git wiki.git
 
-    # make the wiki directories owned by Apache
+    # make the wiki directories owned by Apache (wwwrun user)
     sudo chown -R wwwrun wiki.git
     sudo chown -R wwwrun wiki
 
     # Switch to the latest live branch
-    . scripts/common.inc
+    . ./scripts/common.inc
     branch=$(get_remote_live_info)
-    echo ${branch} > REVISION
-    git checkout -f ${branch}
+    echo $branch > REVISION
+    git checkout -f $(branchname $branch)
 
 At this point, the site is now initialized and set to the latest
 live branch. The `scripts/` directory is not part of the live version
