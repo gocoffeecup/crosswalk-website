@@ -8,19 +8,19 @@ function run () {
     declare local
     declare remote
     declare range
-    
+
     if [[ "$1" = "" || "$1" = "--" ]]; then
         local=$(get_local_live_name)
     else
         local=$1
         shift
     fi
-    
+
     if [[ "$local" =~ ^.*[^.]\.\.\.?[^.].*$ ]]; then
         range=$local
     else
         if [[ "$1" = "" || "$1" = "--" ]]; then
-            echo -n "Fetching active branch name from crosswalk-project.org..." >&2
+            echo -n "Fetching active branch name from ${XWALK_LIVE_WEB}..." >&2
             remote=$(get_remote_live_name)
             echo  "${remote}" >&2
         else
@@ -30,7 +30,7 @@ function run () {
         fi
         range="${remote}..${local}"
     fi
-    
+
 
     echo "Showing diff between ${range}"
     git diff --exit-code ${range} -- $*

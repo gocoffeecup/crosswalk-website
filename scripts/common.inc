@@ -61,10 +61,10 @@ function get_remote_live_info () {
     fi
     case "$1" in
     staging)
-        url=https://stg.crosswalk-project.org
+        url=${XWALK_STG_WEB}
         ;;
     *)
-        url=https://crosswalk-project.org
+        url=${XWALK_LIVE_WEB}
         ;;
     esac
     branch=$(wget --no-check-certificate -qO - ${url}/${revision})

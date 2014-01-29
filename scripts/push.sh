@@ -4,11 +4,11 @@ cat << EOF
 usage: site.sh push [live | <source>]
                     [--revert (live | staging)]
 
-  If live is passed, crosswalk-project.org will be updated to reflect
-  the version of the site currently hosted on stg.crosswalk-project.org.
+  If live is passed, ${XWALK_LIVE_HOST} will be updated to reflect
+  the version of the site currently hosted on ${XWALK_STG_HOST}.
 
   Otherwise, this script will push a version of the site (generated
-  with "site.sh mklive") to the staging server stg.crosswalk-project.org.
+  with "site.sh mklive") to the staging server ${XWALK_STG_HOST}.
 
   If no source specified, the most recent local live-* branch name
   will be used. Otherwise the branch identified with source will
@@ -37,7 +37,7 @@ Options:
 
        site.sh push SOURCE
 
-    3. Manually verify the https://stg.crosswalk-project.org is correct.
+    3. Manually verify the ${XWALK_STG_WEB} is correct.
 
     4. Push the staging server to the live server:
 
@@ -50,11 +50,11 @@ function revert () {
     case "$1" in
     ""|staging)
         target=staging
-        url=https://stg.crosswalk-project.org
+        url=${XWALK_STG_WEB}
         ;;
     live)
         target=live
-        url=https://crosswalk-project.org
+        url=${XWALK_LIVE_WEB}
         ;;
     *)
         echo "Invalid command option: $*"
@@ -96,18 +96,25 @@ function push () {
     current=$4
     git=$(git remote show -n origin | sed -ne 's,^.*Push.*URL: \(.*\)$,\1,p')
     shortsha=${rev/%???????????????????????????}
+
     case $target in
     live)
-        url=sites1.vlan14.01.org
-        site=crosswalk-project.org
+        url=${XWALK_LIVE_BACKEND}
+        site=${XWALK_LIVE_HOST}
         ;;
     staging)
-        url=stg-sites.vlan14.01.org
-        site=stg.crosswalk-project.org
+        url=${XWALK_STG_BACKEND}
+        site=${XWALK_STG_HOST}
         ;;
     esac
 
-    path=/srv/www/${site}/docroot
+    ssh_user=${XWALK_SSH_USER}
+
+    if [ ! -z "$ssh_user" ] ; then
+        url="$ssh_user@$url"
+    fi
+
+    path=$(get_doc_root $target) || die "Invalid target $target"
 
     current_name=$(branchname ${current})
     current_sha=$(branchsha ${current}) || die "Could not find ${current_name}"
@@ -251,9 +258,9 @@ function remote () {
     # by wwwrun:www in order for the Apache process to be able to write
     # to it (eg., gfm.php and regen.php) However the update process
     # requires that directory to be writeable by drush:users
-    [ -d wiki ] && sudo chown -R drush:users wiki
-    { declare -f drush_routine ; echo drush_routine $* ; } | sudo su drush -
-    [ -d wiki ] && sudo chown -R wwwrun:www wiki
+    [ -d wiki ] && sudo chown -R ${XWALK_SCRIPTS_USER}:${XWALK_SCRIPTS_GROUP} wiki
+    { declare -f drush_routine ; echo drush_routine $* ; } | sudo su ${XWALK_SCRIPTS_USER} -
+    [ -d wiki ] && sudo chown -R ${XWALK_APACHE_USER}:${XWALK_APACHE_GROUP} wiki
 }
 
 # usage: site.sh push [live | <source>]
@@ -265,14 +272,14 @@ function run () {
         return
     fi
 
-    echo -n "Fetching staging branch name from stg.crosswalk-project.org..." >&2
+    echo -n "Fetching staging branch name from ${XWALK_STG_HOST}..." >&2
     staging=$(get_remote_live_info staging)
     [[ "${staging}" =~ live-.*:.* ]] || die 'REVISION on staging server is invalid'
     echo "done"
 
     if [[ "$1" == "live" ]]; then
         target="live"
-        echo -n "Fetching live branch name from crosswalk-project.org..." >&2
+        echo -n "Fetching live branch name from ${XWALK_LIVE_HOST}..." >&2
         current=$(get_remote_live_info)
         echo "done."
         rev=${staging}
@@ -328,16 +335,16 @@ EOF
 
   ${branch} has been pushed to staging server. Steps to take:
 
-  1. Test the site by going to https://stg.crosswalk-project.org
+  1. Test the site by going to ${XWALK_STG_WEB}
      1.1 Visit each category section. Make sure they work.
-         https://stg.crosswalk-project.org/#documentation
-         https://stg.crosswalk-project.org/#contribute
-         https://stg.crosswalk-project.org/#wiki
+         ${XWALK_STG_WEB}/#documentation
+         ${XWALK_STG_WEB}/#contribute
+         ${XWALK_STG_WEB}/#wiki
      1.2 Check the Wiki History and verify the newest changes exist
-         https://stg.crosswalk-project.org/#wiki/history
+         ${XWALK_STG_WEB}/#wiki/history
 
   2. Resize your browser window down to a width of 320 and up to
-     full screen. Ensure responsize design still functions.
+     full screen. Ensure responsive design still functions.
 
   3. After you are confident that the site is good, push the version
      from the Staging server to the Live server:

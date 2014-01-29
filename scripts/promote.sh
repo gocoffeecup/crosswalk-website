@@ -1,5 +1,5 @@
 #  This script will perform the following:
-#  
+#
 #  1. Determine the version of the website active on the live server (eg. live-20131202)
 #  2. stash any current changes to master
 #  3. update the versions.js file
@@ -9,14 +9,14 @@
 #  7. commit that change to the live branch
 #  8. push the live branch to GitHub
 #  9. Optionally activate the branch on the staging server via
-#     
+#
 #    site.sh push live-20131202
-#    
+#
 #  At this point, the staging server should be tested to ensure the version update
 #  works as appropriate. Once satisfied, run:
-#    
+#
 #    site.sh push live
-#    
+#
 #  To push the version from the staging server to the live server.
 
 
@@ -36,29 +36,29 @@ usage: site.sh promote <channel> <platform> <architecture> <version>
   platform is one of 'tizen' or 'android'
   arch is either 'x86' or 'arm'
   version is of the form A.B.C.D
- 
+
 Example:
   ${cmd} promote stable android x86 2.31.27.0
   ${cmd} push
-  
-  Visit https://stg.crosswalk-project.org and verify the site lists
+
+  Visit ${XWALK_STG_WEB} and verify the site lists
   the correct version on the main page.
-  
+
   You should also verify the links on the download page:
-  
-    https://stg.crosswalk-project.org/#documentation/downloads
-  
+
+    ${XWALK_STG_WEB}/#documentation/downloads
+
   Once verified:
-  
+
   ${cmd} push live
-  
+
 EOF
 }
 
 function query_diff () {
     branch="$1"
 
-    while true; do 
+    while true; do
         git diff --exit-code ${branch} -- versions.js &&
             echo "No diferences."
         echo -n "Is the above diff correct? [Yn] "
@@ -70,21 +70,21 @@ function query_diff () {
             ;;
         N|n)
             cat << EOF
-            
+
 Exiting. You will need to manually edit 'versions.js'. When done, re-run:
 
     ${cmd} promote --manual-edit
-    
+
 EOF
             false
             return
             ;;
         esac
     done
-}    
+}
 
 function update_versions () {
-    pattern="s,(${channel}:.*?${platform}:.*?${arch}: \")[^\"]*,\${1}${version},s"     
+    pattern="s,(${channel}:.*?${platform}:.*?${arch}: \")[^\"]*,\${1}${version},s"
     cat versions.js | perl -077 -pe "${pattern}" > versions.js.tmp
     mv versions.js.tmp versions.js
 }
@@ -106,21 +106,21 @@ function run () {
             ;;
         esac
     done
-    
+
     channel="${1,,}"
     platform="${2,,}"
     arch="${3,,}"
     version="$4"
-    
-    if [[ "${channel}" == "" || 
-          "${platform}" == "" || 
-          "${arch}" == "" || 
+
+    if [[ "${channel}" == "" ||
+          "${platform}" == "" ||
+          "${arch}" == "" ||
           "${version}" == "" ]]; then
         usage
         false
         return
     fi
-    
+
     case ${channel} in
     "beta"|"stable")
         ;;
@@ -156,14 +156,14 @@ function run () {
 
     git branch | grep -q '\* master' || {
         cat << EOF
-    
+
 ${cmd} promote must be run in the 'master' branch. Steps:
 
   git stash
   git checkout master
   ${cmd} promote <arguments>
   git pop
-  
+
 EOF
         false
         return
@@ -174,14 +174,14 @@ EOF
 Uncommitted changes detected in versions.js. Run:
 
     git commit -s -m 'Updated versions.js' -- versions.js
-    
+
 to commit the file.
 EOF
         false
         return
     }
 
-    echo -n "Fetching active branch name from crosswalk-project.org..." >&2
+    echo -n "Fetching active branch name from ${XWALK_LIVE_WEB}..." >&2
     live=$(get_remote_live_name live)
     echo "done"
 
@@ -209,7 +209,7 @@ EOF
         }
 
         query_diff HEAD -- versions.js || {
-            git diff HEAD -- versions.js | patch -p1 -R || 
+            git diff HEAD -- versions.js | patch -p1 -R ||
                 die "Unable to reset to previous state. 'git stash' still active."
             (( $stash )) && {
                 echo -n "Restoring working directory..."
@@ -219,7 +219,7 @@ EOF
             false
             return
         }
-        
+
         git commit -s -m \
             "Bumped ${platform}-${arch^^} ${channel^^} to ${version}." \
             -- versions.js
@@ -239,8 +239,8 @@ EOF
 
     echo "Pushing ${live} to GitHub..."
     git push origin ${live}:${live} || die "Push to server failed."
-    
-    while true; do 
+
+    while true; do
         echo -n "Push ${live} to staging server? [Yn] "
         read answer
         case $answer in

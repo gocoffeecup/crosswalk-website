@@ -160,13 +160,13 @@ Current tree set back to '$current_branch'. Steps to take:
 
      ./site.sh push
 
-  2. Test the site by going to https://stg.crosswalk-project.org
+  2. Test the site by going to ${XWALK_STG_WEB}
      2.1 Visit each category section. Make sure they work.
-         https://stg.crosswalk-project.org/#documentation
-         https://stg.crosswalk-project.org/#contribute
-         https://stg.crosswalk-project.org/#wiki
+         ${XWALK_STG_WEB}/#documentation
+         ${XWALK_STG_WEB}/#contribute
+         ${XWALK_STG_WEB}/#wiki
      2.2 Check the Wiki History and verify the newest changes exist
-         https://stg.crosswalk-project.org/#wiki/history
+         ${XWALK_STG_WEB}/#wiki/history
 
   3. Resize your browser window down to a width of 320 and up to
      full screen. Ensure responsize design still functions.

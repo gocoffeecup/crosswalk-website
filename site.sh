@@ -6,6 +6,7 @@ if [[ ! -e "$cmd" && "$cmd" =~ .*\/.* ]]; then
     cmd=$(which "$cmd")
 fi
 dir=$(dirname "$cmd")/scripts
+. ${dir}/config.inc
 . ${dir}/common.inc
 
 debug=${debug:=0}
@@ -36,7 +37,7 @@ done
 
 function usage () {
 cat << EOF
-usage: $app [--help] 
+usage: $app [--help]
                <command> [<args>]
 
 EOF
